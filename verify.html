@@ -1,19 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl" id="htmlRoot">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contract Verification</title>
+<title>Contract Verification - Invest Global</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Tajawal:wght@400;500;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0c1220;
     --panel:#121a2c;
     --panel-2:#182238;
     --line: rgba(255,255,255,0.09);
-    --gold:#c9a24a;
-    --gold-dim:#8a6f2e;
+    --blue:#2e648a;
+    --blue-light:#3d84b8;
+    --orange:#f37028;
+    --orange-dim:#c85a1e;
     --verified:#3aa374;
     --alert:#e05a4e;
     --muted:#8a93a8;
@@ -24,15 +26,17 @@
     margin:0;
     min-height:100vh;
     background:
-      radial-gradient(1100px 480px at 50% -10%, rgba(201,162,74,0.14), transparent 60%),
+      radial-gradient(1100px 480px at 50% -10%, rgba(46,100,138,0.22), transparent 60%),
+      radial-gradient(800px 400px at 100% 100%, rgba(243,112,40,0.08), transparent 60%),
       var(--bg);
-    font-family:'Inter', sans-serif;
+    font-family:'Tajawal', 'Inter', sans-serif;
     color:var(--text);
     display:flex;
     align-items:flex-start;
     justify-content:center;
     padding:56px 20px;
   }
+  html[dir="ltr"] body{ font-family:'Inter', sans-serif; }
   .card{
     width:100%;
     max-width:560px;
@@ -48,52 +52,68 @@
     position:absolute;
     top:0;left:0;right:0;
     height:3px;
-    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+    background:linear-gradient(90deg, var(--blue), var(--orange), var(--blue));
   }
   header{
-    padding:38px 34px 22px;
+    padding:34px 34px 22px;
     text-align:center;
     border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .langtoggle{
+    position:absolute;
+    top:16px;
+    inset-inline-end:16px;
+    display:flex;
+    gap:4px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:3px;
+  }
+  .langtoggle button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.03em;
+    padding:5px 11px;
+    border-radius:16px;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .langtoggle button.active{
+    background:linear-gradient(90deg, var(--blue), var(--blue-light));
+    color:#fff;
+  }
+  .logo{
+    width:76px;
+    height:76px;
+    border-radius:50%;
+    margin:0 auto 14px;
+    display:block;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.4);
   }
   header .eyebrow{
     font-family:'IBM Plex Mono', monospace;
     font-size:11px;
-    letter-spacing:.2em;
+    letter-spacing:.15em;
     text-transform:uppercase;
-    color:var(--gold);
+    color:var(--orange);
   }
   header h1{
     font-family:'Manrope', sans-serif;
     font-weight:800;
-    font-size:27px;
+    font-size:25px;
     letter-spacing:-.01em;
-    margin:10px 0 0;
+    margin:8px 0 0;
     color:var(--text);
   }
-  .tabs{
-    display:flex;
-    border-bottom:1px solid var(--line);
-  }
-  .tab{
-    flex:1;
-    padding:15px;
-    text-align:center;
-    font-size:13px;
-    font-weight:600;
-    letter-spacing:.02em;
-    cursor:pointer;
-    color:var(--muted);
-    background:transparent;
-    border:none;
-    font-family:'Inter', sans-serif;
-    border-bottom:2px solid transparent;
-    transition:color .15s;
-  }
-  .tab.active{ color:var(--text); border-bottom-color:var(--gold); }
-  .panel{ padding:30px 34px 34px; display:none; }
-  .panel.active{ display:block; }
-  label{ display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px; letter-spacing:.02em; }
-  input[type=text], input[type=file]{
+  .panel{ padding:30px 34px 34px; }
+  label{ display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px; letter-spacing:.02em; }
+  input[type=text]{
     width:100%;
     padding:11px 12px;
     border:1px solid var(--line);
@@ -103,6 +123,8 @@
     background:var(--panel-2);
     color:var(--text);
     margin-bottom:16px;
+    text-align:left;
+    direction:ltr;
   }
   input[type=text]::placeholder{ color:#5b6478; }
   button.action{
@@ -110,15 +132,15 @@
     padding:13px;
     border:none;
     border-radius:8px;
-    background:linear-gradient(90deg, var(--gold-dim), var(--gold));
-    color:#161005;
+    background:linear-gradient(90deg, var(--blue), var(--blue-light));
+    color:#fff;
     font-weight:700;
     font-size:14px;
     cursor:pointer;
     letter-spacing:.02em;
-    font-family:'Manrope', sans-serif;
+    font-family:inherit;
   }
-  button.action:hover{ filter:brightness(1.08); }
+  button.action:hover{ filter:brightness(1.1); }
   button.action:disabled{ opacity:.5; cursor:progress; }
 
   .result{ margin-top:24px; text-align:center; min-height:1px; }
@@ -147,23 +169,46 @@
   }
   .seal.ok{ color:var(--verified); }
   .seal.bad{ color:var(--alert); }
-  .seal.neutral{ color:var(--gold); }
+  .seal.neutral{ color:var(--orange); }
 
   .details{
     font-family:'IBM Plex Mono', monospace;
     font-size:13px;
-    text-align:left;
     background:var(--panel-2);
     border:1px solid var(--line);
     border-radius:8px;
     padding:14px 16px;
     margin-top:6px;
   }
-  .details div{ display:flex; justify-content:space-between; padding:4px 0; }
-  .details div + div{ border-top:1px dashed var(--line); }
-  .details span.k{ color:var(--muted); }
-  .details span:last-child{ color:var(--text); }
-  .msg{ font-size:13px; color:var(--muted); margin-top:10px; }
+
+  .stagenav{
+    display:flex;
+    gap:8px;
+    margin-top:18px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .stagenav button{
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:700;
+    padding:8px 16px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--muted);
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .stagenav button.active{
+    background:linear-gradient(90deg, var(--blue), var(--blue-light));
+    border-color:transparent;
+    color:#fff;
+  }
+  .stagenav button:hover:not(.active){ color:var(--text); border-color:var(--blue-light); }
+
+  .stageblock{ margin-top:16px; text-align:start; }
+  .stageblock.hidden{ display:none; }
 
   .stagepill{
     display:inline-block;
@@ -171,13 +216,62 @@
     font-size:11px;
     letter-spacing:.05em;
     text-transform:uppercase;
-    color:var(--gold);
-    background:rgba(201,162,74,0.12);
-    border:1px solid rgba(201,162,74,0.35);
+    color:var(--orange);
+    background:rgba(243,112,40,0.12);
+    border:1px solid rgba(243,112,40,0.35);
     padding:4px 10px;
     border-radius:20px;
-    margin-top:14px;
+    margin-bottom:12px;
   }
+
+  .statusbadge{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px 16px;
+    margin-bottom:10px;
+  }
+  .statusbadge .dot{
+    width:11px;height:11px;
+    border-radius:50%;
+    flex-shrink:0;
+    background:var(--orange);
+    box-shadow:0 0 10px var(--orange);
+  }
+  .statusbadge.done .dot{
+    background:var(--verified);
+    box-shadow:0 0 10px var(--verified);
+  }
+  .statusbadge .stxt{ flex:1; }
+  .statusbadge .stxt .steplabel{
+    font-size:14px;
+    font-weight:700;
+    color:var(--text);
+  }
+  .statusbadge .stxt .statuslabel{
+    font-size:11.5px;
+    color:var(--orange);
+    margin-top:2px;
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:.03em;
+  }
+  .statusbadge.done .stxt .statuslabel{ color:var(--verified); }
+
+  .infogrid{
+    font-size:13px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:4px 16px;
+  }
+  .infogrid div{ display:flex; justify-content:space-between; gap:12px; padding:10px 0; }
+  .infogrid div + div{ border-top:1px dashed var(--line); }
+  .infogrid span.k{ color:var(--muted); font-weight:700; flex-shrink:0; }
+  .infogrid span.v{ color:var(--text); text-align:end; }
+
   .notesbox{
     font-size:13px;
     color:var(--text);
@@ -186,10 +280,18 @@
     border-radius:8px;
     padding:12px 14px;
     margin-top:10px;
-    text-align:left;
-    line-height:1.5;
+    line-height:1.6;
   }
-  .notesbox .k{ display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+  .notesbox .k{ display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; font-family:'IBM Plex Mono', monospace; }
+
+  .metarow{
+    display:flex;
+    justify-content:space-between;
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:10px;
+    font-family:'IBM Plex Mono', monospace;
+  }
 
   .contact{
     border-top:1px solid var(--line);
@@ -200,16 +302,17 @@
     font-family:'Manrope', sans-serif;
     font-weight:800;
     font-size:14px;
-    color:var(--gold);
+    color:var(--orange);
     letter-spacing:.02em;
     margin-bottom:10px;
   }
   .contact a{ color:var(--muted); text-decoration:none; }
-  .contact a:hover{ color:var(--gold); }
+  .contact a:hover{ color:var(--orange); }
   .contact .row{
     font-size:12.5px;
     color:var(--muted);
     margin:4px 0;
+    direction:ltr;
   }
   footer{ padding:14px 34px 24px; text-align:center; font-size:11px; color:var(--muted); }
 </style>
@@ -217,31 +320,152 @@
 <body>
 <div class="card">
   <header>
-    <div class="eyebrow">Official Registry</div>
-    <h1>Contract Verification</h1>
+    <div class="langtoggle">
+      <button id="langAr" class="active" data-lang="ar">AR</button>
+      <button id="langEn" data-lang="en">EN</button>
+    </div>
+    <img class="logo" src="data:image/jpeg;base64,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" alt="Invest Global">
+    <div class="eyebrow" id="txtEyebrow">السجل الرسمي</div>
+    <h1 id="txtTitle">التحقق من العقد</h1>
   </header>
 
-  <div class="panel active" id="panel-status">
-    <label for="idInput1">Contract Number</label>
+  <div class="panel" id="panel-status">
+    <label for="idInput1" id="txtLabel">رقم العقد</label>
     <input type="text" id="idInput1" placeholder="e.g. C-2026-0143">
-    <button class="action" id="btnLookup">Check Status</button>
+    <button class="action" id="btnLookup">فحص الحالة</button>
     <div class="result" id="resultStatus"></div>
   </div>
 
   <div class="contact">
     <div class="brand">Invest Global</div>
-    <div class="row">📍 King Fahd Rd, Al Olaya, Riyadh, Saudi Arabia</div>
-    <div class="row"><a href="tel:00966920035230">+966-9200-35230</a> &nbsp;·&nbsp; <a href="tel:00966533044219">+966-53-304-4219</a></div>
-    <div class="row"><a href="mailto:info@investing-global.net">info@investing-global.net</a> &nbsp;·&nbsp; <a href="https://investing-global.net" target="_blank" rel="noopener">investing-global.net</a></div>
+    <div class="row">King Fahd Rd, Al Olaya, Riyadh, Saudi Arabia</div>
+    <div class="row"><a href="tel:00966920035230">+966-9200-35230</a> &nbsp;&middot;&nbsp; <a href="tel:00966533044219">+966-53-304-4219</a></div>
+    <div class="row"><a href="mailto:info@investing-global.net">info@investing-global.net</a> &nbsp;&middot;&nbsp; <a href="https://investing-global.net" target="_blank" rel="noopener">investing-global.net</a></div>
   </div>
 
-  <footer>Only contract details relevant to verification are shown here. No financial or personal information is exposed.</footer>
+  <footer id="txtFooter">تُعرض هنا فقط تفاصيل العقد اللازمة للتحقق. لا يتم عرض أي معلومات مالية أو شخصية.</footer>
 </div>
 
 <script>
 /* ====================== CONFIG ====================== */
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSBnB6cx30Cere6cNPZ2__vWxp1eTktnZiMnAO9rJhJYLRvww--uaArx8N5-XJhx3-q9cUsjAECAjAW/pub?gid=0&single=true&output=csv";
 /* ====================================================== */
+
+/*
+  Expected Google Sheet columns (header row, case-insensitive):
+
+  Stage 1 (always shown once a contract is found):
+    ContractID, IssueDate, Status, ResponsibleName, Stage, NextStep, LastUpdated, Notes
+
+  Stage 2 (shown only if UnlockedStage is 2 or 3):
+    Stage2Step, Stage2Location, Stage2Time, Stage2Requirements, Stage2Status (pending/done)
+
+  Stage 3 (shown only if UnlockedStage is 3):
+    Stage3Step, Stage3Location, Stage3Time, Stage3Requirements, Stage3Status (pending/done)
+
+  Control column:
+    UnlockedStage -> "1" (default), "2", or "3"
+
+  NOTE: Sheet content itself (Notes, Stage names, etc.) is shown as typed —
+  it is not auto-translated. The language toggle only switches the interface labels.
+*/
+
+// ---------------- i18n ----------------
+const I18N = {
+  ar: {
+    dir: "rtl",
+    eyebrow: "السجل الرسمي",
+    title: "التحقق من العقد",
+    label: "رقم العقد",
+    placeholder: "مثال: C-2026-0143",
+    btn: "فحص الحالة",
+    btnChecking: "جاري التحقق…",
+    enterId: "أدخل رقم العقد.",
+    noRecord: "لا يوجد سجل",
+    notFound: "غير موجود",
+    noMatch: id => `لا يوجد عقد مطابق لـ "${id}".`,
+    fetchError: "تعذر الوصول إلى السجل. يرجى المحاولة لاحقًا.",
+    active: "نشط",
+    cancelled: "ملغى",
+    contractNo: "رقم العقد",
+    issueDate: "تاريخ الإصدار",
+    status: "الحالة",
+    responsible: "الشخص المسؤول",
+    stage: "المرحلة",
+    nextStep: "الخطوة القادمة",
+    notes: "ملاحظات",
+    lastUpdated: "آخر تحديث",
+    stageBtn: n => `المرحلة ${n}`,
+    location: "المكان",
+    time: "الوقت",
+    requirements: "المتطلبات",
+    done: "تم",
+    pending: "قيد الانتظار",
+    footer: "تُعرض هنا فقط تفاصيل العقد اللازمة للتحقق. لا يتم عرض أي معلومات مالية أو شخصية."
+  },
+  en: {
+    dir: "ltr",
+    eyebrow: "Official Registry",
+    title: "Contract Verification",
+    label: "Contract Number",
+    placeholder: "e.g. C-2026-0143",
+    btn: "Check Status",
+    btnChecking: "Checking…",
+    enterId: "Enter a contract number.",
+    noRecord: "No Record",
+    notFound: "not found",
+    noMatch: id => `No contract matches "${id}".`,
+    fetchError: "Could not reach the registry. Please try again shortly.",
+    active: "Active",
+    cancelled: "Cancelled",
+    contractNo: "Contract No.",
+    issueDate: "Issue Date",
+    status: "Status",
+    responsible: "Responsible",
+    stage: "Stage",
+    nextStep: "Next Step",
+    notes: "Notes",
+    lastUpdated: "Last Updated",
+    stageBtn: n => `Stage ${n}`,
+    location: "Location",
+    time: "Time",
+    requirements: "Requirements",
+    done: "Done",
+    pending: "Pending",
+    footer: "Only contract details relevant to verification are shown here. No financial or personal information is exposed."
+  }
+};
+
+let currentLang = "ar";
+let lastRec = null; // remembers the last successful lookup so we can re-render on language switch
+
+function t(){ return I18N[currentLang]; }
+
+function applyStaticText(){
+  const L = t();
+  document.getElementById("htmlRoot").setAttribute("lang", currentLang);
+  document.getElementById("htmlRoot").setAttribute("dir", L.dir);
+  document.getElementById("txtEyebrow").textContent = L.eyebrow;
+  document.getElementById("txtTitle").textContent = L.title;
+  document.getElementById("txtLabel").textContent = L.label;
+  document.getElementById("idInput1").placeholder = L.placeholder;
+  document.getElementById("btnLookup").textContent = L.btn;
+  document.getElementById("txtFooter").textContent = L.footer;
+  document.getElementById("langAr").classList.toggle("active", currentLang === "ar");
+  document.getElementById("langEn").classList.toggle("active", currentLang === "en");
+}
+
+document.getElementById("langAr").addEventListener("click", ()=> setLang("ar"));
+document.getElementById("langEn").addEventListener("click", ()=> setLang("en"));
+
+function setLang(lang){
+  if(lang === currentLang) return;
+  currentLang = lang;
+  applyStaticText();
+  if(lastRec){
+    renderResult(lastRec);
+  }
+}
 
 // --- tiny CSV parser (handles quoted commas) ---
 function parseCSV(text){
@@ -291,54 +515,151 @@ function sealHTML(cls, big, small){
   return `<div class="seal ${cls}"><div>${big}<br><span style="font-weight:400;font-size:10px">${small||""}</span></div></div>`;
 }
 
+function statusBadge(stepText, status){
+  const L = t();
+  const isDone = (status||"").trim().toLowerCase() === "done";
+  const label = isDone ? L.done : L.pending;
+  return `<div class="statusbadge ${isDone?'done':''}">
+      <div class="dot"></div>
+      <div class="stxt">
+        <div class="steplabel">${escapeHtml(stepText||"—")}</div>
+        <div class="statuslabel">${label}</div>
+      </div>
+    </div>`;
+}
+
+function stageInfoGrid(rec, n){
+  const L = t();
+  const loc = (rec[`stage${n}location`]||"").trim();
+  const time = (rec[`stage${n}time`]||"").trim();
+  const reqs = (rec[`stage${n}requirements`]||"").trim();
+  let rows = "";
+  if(loc)  rows += `<div><span class="k">${L.location}</span><span class="v">${escapeHtml(loc)}</span></div>`;
+  if(time) rows += `<div><span class="k">${L.time}</span><span class="v">${escapeHtml(time)}</span></div>`;
+  if(reqs) rows += `<div><span class="k">${L.requirements}</span><span class="v">${escapeHtml(reqs)}</span></div>`;
+  return rows ? `<div class="infogrid">${rows}</div>` : "";
+}
+
+function buildStageBlock(rec, n, activeIndex){
+  const step = (rec[`stage${n}step`]||"").trim();
+  const status = (rec[`stage${n}status`]||"").trim();
+  if(!step) return "";
+  return `<div class="stageblock ${n===activeIndex?'':'hidden'}" data-stage="${n}">
+      ${statusBadge(step, status)}
+      ${stageInfoGrid(rec, n)}
+    </div>`;
+}
+
+function buildStage1Block(rec, activeIndex){
+  const L = t();
+  const responsible = (rec["responsiblename"]||rec["responsible"]||"").trim();
+  const stage = (rec["stage"]||rec["process"]||"").trim();
+  const nextStep = (rec["nextstep"]||"").trim();
+  const notes = (rec["notes"]||rec["details"]||"").trim();
+  const lastUpdated = (rec["lastupdated"]||"").trim();
+  const rawStatus = (rec["status"]||"").trim();
+
+  let infoRows = `
+     <div><span class="k">${L.contractNo}</span><span class="v">${escapeHtml(rec["contractid"]||"")}</span></div>
+     <div><span class="k">${L.issueDate}</span><span class="v">${escapeHtml(rec["issuedate"]||"")}</span></div>
+     <div><span class="k">${L.status}</span><span class="v">${escapeHtml(rawStatus)}</span></div>`;
+  if(responsible){
+    infoRows += `<div><span class="k">${L.responsible}</span><span class="v">${escapeHtml(responsible)}</span></div>`;
+  }
+
+  let body = `<div class="infogrid">${infoRows}</div>`;
+  if(nextStep){
+    body += `<div class="notesbox"><span class="k">${L.nextStep}</span>${escapeHtml(nextStep)}</div>`;
+  }
+  if(notes){
+    body += `<div class="notesbox"><span class="k">${L.notes}</span>${escapeHtml(notes)}</div>`;
+  }
+  if(lastUpdated){
+    body += `<div class="metarow"><span>${L.lastUpdated}</span><span>${escapeHtml(lastUpdated)}</span></div>`;
+  }
+
+  return `<div class="stageblock ${1===activeIndex?'':'hidden'}" data-stage="1">
+      ${stage ? `<div class="stagepill">${L.stage}: ${escapeHtml(stage)}</div>` : ""}
+      ${body}
+    </div>`;
+}
+
+function switchStage(container, n){
+  container.querySelectorAll(".stageblock").forEach(el=>{
+    el.classList.toggle("hidden", el.getAttribute("data-stage") !== String(n));
+  });
+  container.querySelectorAll(".stagenav button").forEach(btn=>{
+    btn.classList.toggle("active", btn.getAttribute("data-target") === String(n));
+  });
+}
+
+function renderResult(rec){
+  const L = t();
+  const out = document.getElementById("resultStatus");
+  const rawStatus = (rec["status"]||"").trim();
+  const status = rawStatus.toLowerCase();
+  const cancelledWords = ["cancel","الغى","الغي","void","terminated","expired","revoked"];
+  const isCancelled = cancelledWords.some(w => status.includes(w));
+
+  let unlockedStage = parseInt((rec["unlockedstage"]||"1").trim(), 10);
+  if(![1,2,3].includes(unlockedStage)) unlockedStage = 1;
+
+  const blocks = [];
+  blocks.push({n:1, html: buildStage1Block(rec, unlockedStage)});
+  if(unlockedStage >= 2){
+    const b2 = buildStageBlock(rec, 2, unlockedStage);
+    if(b2) blocks.push({n:2, html:b2});
+  }
+  if(unlockedStage >= 3){
+    const b3 = buildStageBlock(rec, 3, unlockedStage);
+    if(b3) blocks.push({n:3, html:b3});
+  }
+
+  let nav = "";
+  if(blocks.length > 1){
+    nav = `<div class="stagenav">` + blocks.map(b=>
+      `<button data-target="${b.n}" class="${b.n===unlockedStage?'active':''}">${L.stageBtn(b.n)}</button>`
+    ).join("") + `</div>`;
+  }
+
+  out.innerHTML = sealHTML(isCancelled?"bad":"ok", isCancelled?L.cancelled:L.active) +
+    nav +
+    blocks.map(b=>b.html).join("");
+
+  if(blocks.length > 1){
+    out.querySelectorAll(".stagenav button").forEach(btn=>{
+      btn.addEventListener("click", ()=> switchStage(out, btn.getAttribute("data-target")));
+    });
+  }
+}
+
 // ---- Status lookup ----
 document.getElementById("btnLookup").addEventListener("click", async ()=>{
+  const L = t();
   const out = document.getElementById("resultStatus");
   const id = document.getElementById("idInput1").value.trim();
-  if(!id){ out.innerHTML = `<div class="msg">Enter a contract number.</div>`; return; }
-  out.innerHTML = `<div class="msg">Checking…</div>`;
+  if(!id){ out.innerHTML = `<div class="msg">${L.enterId}</div>`; return; }
+  out.innerHTML = `<div class="msg">${L.btnChecking}</div>`;
   try{
     const rows = await loadSheet();
     const rec = findContract(rows, id);
     if(!rec){
-      out.innerHTML = sealHTML("neutral","No Record","not found") +
-        `<div class="msg">No contract matches "${escapeHtml(id)}".</div>`;
+      lastRec = null;
+      out.innerHTML = sealHTML("neutral", L.noRecord, L.notFound) +
+        `<div class="msg">${L.noMatch(escapeHtml(id))}</div>`;
       return;
     }
-    const rawStatus = (rec["status"]||"").trim();
-    const status = rawStatus.toLowerCase();
-    const cancelledWords = ["cancel","ملغى","ملغي","void","terminated","expired","revoked"];
-    const isCancelled = cancelledWords.some(w => status.includes(w));
-
-    const responsible = (rec["responsiblename"]||rec["responsible"]||"").trim();
-    const process = (rec["process"]||rec["stage"]||"").trim();
-    const notes = (rec["notes"]||rec["details"]||"").trim();
-
-    let detailsRows = `
-         <div><span class="k">Contract No.</span><span>${escapeHtml(rec["contractid"]||"")}</span></div>
-         <div><span class="k">Issue Date</span><span>${escapeHtml(rec["issuedate"]||"")}</span></div>
-         <div><span class="k">Status</span><span>${escapeHtml(rawStatus)}</span></div>`;
-    if(responsible){
-      detailsRows += `<div><span class="k">Responsible</span><span>${escapeHtml(responsible)}</span></div>`;
-    }
-
-    let extra = "";
-    if(process){
-      extra += `<div class="stagepill">Stage: ${escapeHtml(process)}</div>`;
-    }
-    if(notes){
-      extra += `<div class="notesbox"><span class="k">Notes</span>${escapeHtml(notes)}</div>`;
-    }
-
-    out.innerHTML = sealHTML(isCancelled?"bad":"ok", isCancelled?"Cancelled":"Active") +
-      `<div class="details">${detailsRows}</div>` + extra;
+    lastRec = rec;
+    renderResult(rec);
   }catch(e){
-    out.innerHTML = `<div class="msg">Could not reach the registry. Please try again shortly.</div>`;
+    lastRec = null;
+    out.innerHTML = `<div class="msg">${L.fetchError}</div>`;
   }
 });
 
 // ---- auto-fill from ?id= in URL ----
 (function(){
+  applyStaticText();
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
   if(id){
