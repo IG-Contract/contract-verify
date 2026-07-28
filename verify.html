@@ -278,13 +278,15 @@ document.getElementById("btnLookup").addEventListener("click", async ()=>{
         `<div class="msg">No contract matches "${escapeHtml(id)}".</div>`;
       return;
     }
-    const status = (rec["status"]||"").toLowerCase();
-    const isActive = status.includes("active") || status.includes("ساري") || status === "valid";
-    out.innerHTML = sealHTML(isActive?"ok":"bad", isActive?"Active":"Cancelled") +
+    const rawStatus = (rec["status"]||"").trim();
+    const status = rawStatus.toLowerCase();
+    const cancelledWords = ["cancel","ملغى","ملغي","void","terminated","expired","revoked"];
+    const isCancelled = cancelledWords.some(w => status.includes(w));
+    out.innerHTML = sealHTML(isCancelled?"bad":"ok", isCancelled?"Cancelled":"Active") +
       `<div class="details">
          <div><span class="k">Contract No.</span><span>${escapeHtml(rec["contractid"]||"")}</span></div>
          <div><span class="k">Issue Date</span><span>${escapeHtml(rec["issuedate"]||"")}</span></div>
-         <div><span class="k">Status</span><span>${escapeHtml(rec["status"]||"")}</span></div>
+         <div><span class="k">Status</span><span>${escapeHtml(rawStatus)}</span></div>
        </div>`;
   }catch(e){
     out.innerHTML = `<div class="msg">Could not reach the registry. Please try again shortly.</div>`;
