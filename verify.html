@@ -164,7 +164,54 @@
   .details span.k{ color:var(--muted); }
   .details span:last-child{ color:var(--text); }
   .msg{ font-size:13px; color:var(--muted); margin-top:10px; }
-  footer{ padding:16px 34px 28px; text-align:center; font-size:11px; color:var(--muted); }
+
+  .stagepill{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--gold);
+    background:rgba(201,162,74,0.12);
+    border:1px solid rgba(201,162,74,0.35);
+    padding:4px 10px;
+    border-radius:20px;
+    margin-top:14px;
+  }
+  .notesbox{
+    font-size:13px;
+    color:var(--text);
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 14px;
+    margin-top:10px;
+    text-align:left;
+    line-height:1.5;
+  }
+  .notesbox .k{ display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+
+  .contact{
+    border-top:1px solid var(--line);
+    padding:22px 34px 26px;
+    text-align:center;
+  }
+  .contact .brand{
+    font-family:'Manrope', sans-serif;
+    font-weight:800;
+    font-size:14px;
+    color:var(--gold);
+    letter-spacing:.02em;
+    margin-bottom:10px;
+  }
+  .contact a{ color:var(--muted); text-decoration:none; }
+  .contact a:hover{ color:var(--gold); }
+  .contact .row{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:4px 0;
+  }
+  footer{ padding:14px 34px 24px; text-align:center; font-size:11px; color:var(--muted); }
 </style>
 </head>
 <body>
@@ -174,12 +221,6 @@
     <h1>Contract Verification</h1>
   </header>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="status">Check Status</button>
-    <button class="tab" data-tab="file">Verify Document</button>
-  </div>
-
-  <!-- TAB 1: STATUS LOOKUP -->
   <div class="panel active" id="panel-status">
     <label for="idInput1">Contract Number</label>
     <input type="text" id="idInput1" placeholder="e.g. C-2026-0143">
@@ -187,18 +228,14 @@
     <div class="result" id="resultStatus"></div>
   </div>
 
-  <!-- TAB 2: FILE HASH VERIFY -->
-  <div class="panel" id="panel-file">
-    <label for="idInput2">Contract Number</label>
-    <input type="text" id="idInput2" placeholder="e.g. C-2026-0143">
-    <label for="fileInput">Upload your copy of the contract file</label>
-    <input type="file" id="fileInput">
-    <button class="action" id="btnVerifyFile">Verify Document</button>
-    <div class="result" id="resultFile"></div>
-    <div class="msg">This compares the file you upload against the fingerprint recorded when the contract was issued. Nothing is uploaded anywhere — the check runs in your browser.</div>
+  <div class="contact">
+    <div class="brand">Invest Global</div>
+    <div class="row">📍 King Fahd Rd, Al Olaya, Riyadh, Saudi Arabia</div>
+    <div class="row"><a href="tel:00966920035230">+966-9200-35230</a> &nbsp;·&nbsp; <a href="tel:00966533044219">+966-53-304-4219</a></div>
+    <div class="row"><a href="mailto:info@investing-global.net">info@investing-global.net</a> &nbsp;·&nbsp; <a href="https://investing-global.net" target="_blank" rel="noopener">investing-global.net</a></div>
   </div>
 
-  <footer>Contract number and issue date shown only. No personal or financial details are exposed here.</footer>
+  <footer>Only contract details relevant to verification are shown here. No financial or personal information is exposed.</footer>
 </div>
 
 <script>
@@ -254,17 +291,7 @@ function sealHTML(cls, big, small){
   return `<div class="seal ${cls}"><div>${big}<br><span style="font-weight:400;font-size:10px">${small||""}</span></div></div>`;
 }
 
-// ---- Tab switching ----
-document.querySelectorAll(".tab").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById("panel-"+btn.dataset.tab).classList.add("active");
-  });
-});
-
-// ---- Tab 1: status lookup ----
+// ---- Status lookup ----
 document.getElementById("btnLookup").addEventListener("click", async ()=>{
   const out = document.getElementById("resultStatus");
   const id = document.getElementById("idInput1").value.trim();
@@ -282,53 +309,31 @@ document.getElementById("btnLookup").addEventListener("click", async ()=>{
     const status = rawStatus.toLowerCase();
     const cancelledWords = ["cancel","ملغى","ملغي","void","terminated","expired","revoked"];
     const isCancelled = cancelledWords.some(w => status.includes(w));
-    out.innerHTML = sealHTML(isCancelled?"bad":"ok", isCancelled?"Cancelled":"Active") +
-      `<div class="details">
+
+    const responsible = (rec["responsiblename"]||rec["responsible"]||"").trim();
+    const process = (rec["process"]||rec["stage"]||"").trim();
+    const notes = (rec["notes"]||rec["details"]||"").trim();
+
+    let detailsRows = `
          <div><span class="k">Contract No.</span><span>${escapeHtml(rec["contractid"]||"")}</span></div>
          <div><span class="k">Issue Date</span><span>${escapeHtml(rec["issuedate"]||"")}</span></div>
-         <div><span class="k">Status</span><span>${escapeHtml(rawStatus)}</span></div>
-       </div>`;
+         <div><span class="k">Status</span><span>${escapeHtml(rawStatus)}</span></div>`;
+    if(responsible){
+      detailsRows += `<div><span class="k">Responsible</span><span>${escapeHtml(responsible)}</span></div>`;
+    }
+
+    let extra = "";
+    if(process){
+      extra += `<div class="stagepill">Stage: ${escapeHtml(process)}</div>`;
+    }
+    if(notes){
+      extra += `<div class="notesbox"><span class="k">Notes</span>${escapeHtml(notes)}</div>`;
+    }
+
+    out.innerHTML = sealHTML(isCancelled?"bad":"ok", isCancelled?"Cancelled":"Active") +
+      `<div class="details">${detailsRows}</div>` + extra;
   }catch(e){
     out.innerHTML = `<div class="msg">Could not reach the registry. Please try again shortly.</div>`;
-  }
-});
-
-// ---- Tab 2: file hash verification ----
-async function sha256Hex(file){
-  const buf = await file.arrayBuffer();
-  const digest = await crypto.subtle.digest("SHA-256", buf);
-  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-
-document.getElementById("btnVerifyFile").addEventListener("click", async ()=>{
-  const out = document.getElementById("resultFile");
-  const id = document.getElementById("idInput2").value.trim();
-  const fileInput = document.getElementById("fileInput");
-  if(!id){ out.innerHTML = `<div class="msg">Enter the contract number.</div>`; return; }
-  if(!fileInput.files.length){ out.innerHTML = `<div class="msg">Choose the file to check.</div>`; return; }
-
-  out.innerHTML = `<div class="msg">Checking…</div>`;
-  try{
-    const rows = await loadSheet();
-    const rec = findContract(rows, id);
-    if(!rec){
-      out.innerHTML = sealHTML("neutral","No Record","not found");
-      return;
-    }
-    const storedHash = (rec["filehash"]||"").trim().toLowerCase();
-    if(!storedHash){
-      out.innerHTML = sealHTML("neutral","No Fingerprint","on file") +
-        `<div class="msg">This contract has no stored fingerprint to compare against.</div>`;
-      return;
-    }
-    const fileHash = await sha256Hex(fileInput.files[0]);
-    if(fileHash === storedHash){
-      out.innerHTML = sealHTML("ok","Original","unaltered");
-    } else {
-      out.innerHTML = sealHTML("bad","Modified","does not match");
-    }
-  }catch(e){
-    out.innerHTML = `<div class="msg">Could not complete the check. Please try again.</div>`;
   }
 });
 
@@ -338,7 +343,6 @@ document.getElementById("btnVerifyFile").addEventListener("click", async ()=>{
   const id = params.get("id");
   if(id){
     document.getElementById("idInput1").value = id;
-    document.getElementById("idInput2").value = id;
     document.getElementById("btnLookup").click();
   }
 })();
