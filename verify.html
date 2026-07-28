@@ -269,6 +269,41 @@ footer{padding:12px 28px 20px;text-align:center;font-size:10px;color:var(--muted
   border:1px solid rgba(255,255,255,0.1);pointer-events:none;opacity:0;
   transform:translateX(6px);transition:opacity .2s,transform .2s}
 .wa-btn:hover .wa-tooltip{opacity:1;transform:translateX(0)}
+
+/* ---- PAGES ---- */
+.pages-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;gap:8px;
+}
+.pages-dots{
+  display:flex;gap:6px;align-items:center;flex:1;justify-content:center;
+}
+.page-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--muted2);transition:all .25s;cursor:pointer;
+  border:1.5px solid transparent;
+}
+.page-dot.active{
+  background:var(--orange);border-color:var(--orange);
+  width:10px;height:10px;
+}
+.page-dot.done{background:var(--blue-l)}
+.page-dot.locked{background:var(--panel2);border-color:var(--muted2);cursor:default}
+.btn-page{
+  display:flex;align-items:center;gap:5px;
+  padding:8px 14px;border-radius:8px;border:1px solid var(--line2);
+  background:var(--panel2);color:var(--text2);font-size:12px;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .18s;white-space:nowrap;
+}
+.btn-page:hover:not(:disabled){border-color:var(--blue-l);color:var(--text)}
+.btn-page:disabled{opacity:.35;cursor:default}
+.btn-page .arrow{font-size:14px;line-height:1}
+.page-label{
+  font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);text-align:center;margin-bottom:14px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.page-block{animation:stageFadeIn .28s ease-out}
 </style>
 </head>
 <body>
@@ -433,6 +468,8 @@ var I18N={
     welcome:function(name,id){return 'Contract #'+id+' — Welcome, '+name;},
     welcomeMsg:'The Invest Global team wishes you success',
     footer:'Only contract tracking details are shown here.',
+    nextPageBtn:'Next',
+    prevPageBtn:'Prev',
     waTooltip:'Need help?'
   }
 };
@@ -543,13 +580,19 @@ function getCurrentStepIdx(rec,track){
   var n=parseInt(raw,10);
   if(isNaN(n)||n<1)n=1;
   if(n>track.length)n=track.length;
-  return n-1; /* 0-based */
+  return n-1;
+}
+function getStepLabel(rec,track,idx){
+  var custom=(rec['steplabel']||'').trim();
+  if(custom) return custom;
+  var step=track[idx];
+  return currentLang==='ar'?step[4]:step[5];
 }
 
 /* ---- BUILD PHASE BLOCKS ---- */
-function buildPhaseBlocks(rec,track,currentIdx){
+function buildPages(rec,track,currentIdx){
   var L=t();
-  /* group steps by phase */
+  /* Group steps by phase → each phase = one page */
   var phases={},phaseOrder=[];
   track.forEach(function(s,i){
     var ph=s[1];
@@ -557,20 +600,18 @@ function buildPhaseBlocks(rec,track,currentIdx){
     phases[ph].steps.push({idx:i,nameAr:s[4],nameEn:s[5],pct:s[6]});
   });
 
-  var blocks='';
-  phaseOrder.forEach(function(ph){
+  /* Build page objects */
+  var pages=phaseOrder.map(function(ph){
     var phase=phases[ph];
+    var steps=phase.steps;
+    var allDone=steps.every(function(s){return s.idx<currentIdx;});
+    var hasActive=steps.some(function(s){return s.idx===currentIdx;});
     var phaseName=currentLang==='ar'?phase.nameAr:phase.nameEn;
-    var phaseSteps=phase.steps;
-    /* determine phase state */
-    var allDone=phaseSteps.every(function(s){return s.idx<currentIdx;});
-    var hasActive=phaseSteps.some(function(s){return s.idx===currentIdx;});
 
-    var stepsHTML=phaseSteps.map(function(s){
-      var isDone=s.idx<currentIdx;
-      var isCurrent=s.idx===currentIdx;
-      var isUpcoming=s.idx>currentIdx;
-      var name=currentLang==='ar'?s.nameAr:s.nameEn;
+    var stepsHTML=steps.map(function(s){
+      var isDone=s.idx<currentIdx,isCurrent=s.idx===currentIdx;
+      var customLabel=isCurrent?(rec['steplabel']||'').trim():'';
+      var name=customLabel||(currentLang==='ar'?s.nameAr:s.nameEn);
       var cls='step-item '+(isDone?'step-done':isCurrent?'step-current':'step-upcoming');
       var dotCls='step-dot '+(isDone?'dot-done':isCurrent?'dot-current':'dot-upcoming');
       var dotContent=isDone?'&#10003;':isCurrent?'&#9679;':'&#9675;';
@@ -585,14 +626,79 @@ function buildPhaseBlocks(rec,track,currentIdx){
     }).join('');
 
     var phaseColor=allDone?'var(--blue-l)':hasActive?'var(--orange)':'var(--muted2)';
-    blocks+='<div style="margin-bottom:18px">'+
-      '<div class="phase-label" style="color:'+phaseColor+';background:'+(allDone?'rgba(79,147,196,0.1)':hasActive?'var(--orange-dim)':'rgba(100,100,100,0.1)')+';border-color:'+(allDone?'rgba(79,147,196,0.3)':hasActive?'rgba(243,112,40,0.3)':'rgba(100,100,100,0.2)')+'">'+
-      esc(phaseName)+'</div>'+
+    var phaseBg=allDone?'rgba(79,147,196,0.1)':hasActive?'var(--orange-dim)':'rgba(100,100,100,0.1)';
+    var phaseBorder=allDone?'rgba(79,147,196,0.3)':hasActive?'rgba(243,112,40,0.3)':'rgba(100,100,100,0.2)';
+
+    var html='<div class="page-block">'+
+      '<div class="phase-label" style="color:'+phaseColor+';background:'+phaseBg+';border-color:'+phaseBorder+'">'+esc(phaseName)+'</div>'+
       '<div class="steps-list">'+stepsHTML+'</div>'+
       '</div>';
+
+    return {name:phaseName,html:html,allDone:allDone,hasActive:hasActive,state:allDone?'done':hasActive?'active':'upcoming'};
   });
-  return blocks;
+
+  return pages;
 }
+
+function renderPages(pages,currentPageIdx,out,extraHTML){
+  var L=t();
+  var total=pages.length;
+
+  /* dots */
+  var dots=pages.map(function(p,i){
+    var cls='page-dot '+(i===currentPageIdx?'active':p.state==='done'?'done':'locked');
+    return '<div class="'+cls+'" data-pi="'+i+'" title="'+esc(p.name)+'"></div>';
+  }).join('');
+
+  var prevDis=currentPageIdx===0?'disabled':'';
+  var nextDis=currentPageIdx===total-1?'disabled':'';
+  var prevLbl=L.dir==='rtl'?'\u25ba \u0627\u0644\u062a\u0627\u0644\u064a':'\u2190 Prev';
+  var nextLbl=L.dir==='rtl'?'\u25c4 \u0627\u0644\u0633\u0627\u0628\u0642':'Next \u2192';
+
+  var nav='<div class="pages-nav">'+
+    '<button class="btn-page" id="btnPrev" '+prevDis+'>'+
+      '<span class="arrow">'+(L.dir==='rtl'?'\u276f':'\u2190')+'</span>'+
+      (L.dir==='rtl'?L.nextPageBtn:L.prevPageBtn)+
+    '</button>'+
+    '<div class="pages-dots">'+dots+'</div>'+
+    '<button class="btn-page" id="btnNext" '+nextDis+'>'+
+      (L.dir==='rtl'?L.prevPageBtn:L.nextPageBtn)+
+      '<span class="arrow">'+(L.dir==='rtl'?'\u276e':'\u2192')+'</span>'+
+    '</button>'+
+  '</div>';
+
+  var pageNum='<div class="page-label">'+
+    (L.dir==='rtl'?
+      ('\u0635\u0641\u062d\u0629 '+(currentPageIdx+1)+' \u0645\u0646 '+total):
+      ('Page '+(currentPageIdx+1)+' of '+total))+
+  '</div>';
+
+  out.querySelector('#pageContent').innerHTML=pageNum+pages[currentPageIdx].html+extraHTML;
+  out.querySelector('#pageNav').innerHTML=nav;
+
+  /* dot click */
+  out.querySelectorAll('.page-dot').forEach(function(d){
+    d.addEventListener('click',function(){
+      var pi=parseInt(d.getAttribute('data-pi'));
+      if(!isNaN(pi)) _switchPage(pi,out,pages,extraHTML,L);
+    });
+  });
+
+  /* prev/next */
+  var btnP=out.querySelector('#btnPrev');
+  var btnN=out.querySelector('#btnNext');
+  if(btnP) btnP.onclick=function(){_switchPage(currentPageIdx-1,out,pages,extraHTML,L);};
+  if(btnN) btnN.onclick=function(){_switchPage(currentPageIdx+1,out,pages,extraHTML,L);};
+}
+
+var _currentPage=0;
+function _switchPage(idx,out,pages,extraHTML,L){
+  if(idx<0||idx>=pages.length)return;
+  sfx.stage();
+  _currentPage=idx;
+  renderPages(pages,idx,out,extraHTML);
+}
+
 
 /* ---- RENDER RESULT ---- */
 function renderResult(rec){
@@ -624,45 +730,53 @@ function renderResult(rec){
       '</div>';
   }
 
-  /* current phase name */
   var curPhaseName=currentLang==='ar'?currentStep[2]:currentStep[3];
-  var curStepName=currentLang==='ar'?currentStep[4]:currentStep[5];
+  var curStepName=getStepLabel(rec,track,currentIdx);
+  var pctCls=pct>=70?'high':pct>=30?'mid':'low';
 
-  /* info grid */
+  /* info + notes block (shown on every page) */
   var pairs=[];
   pairs.push([L.contractNo,contractId]);
   if(issueDate)pairs.push([L.issueDate,issueDate]);
   pairs.push([L.status,rawStatus]);
   if(responsible)pairs.push([L.responsible,responsible]);
   if(nextStep)pairs.push([L.nextStep,nextStep]);
+  var extraHTML=
+    infoGrid(pairs)+
+    (notes?'<div class="notes-box"><span class="nk">'+L.notes+'</span><div class="notes-body">'+esc(notes)+'</div></div>':'')+
+    (updated?'<div class="meta-row"><span>'+L.lastUpdated+'</span><span>'+esc(updated)+'</span></div>':'');
 
-  /* pct color */
-  var pctCls=pct>=70?'high':pct>=30?'mid':'low';
+  /* build pages */
+  var pages=buildPages(rec,track,currentIdx);
+  /* auto-navigate to the page containing the current step */
+  var startPage=0;
+  for(var pi=0;pi<pages.length;pi++){
+    if(pages[pi].hasActive){startPage=pi;break;}
+  }
+  _currentPage=startPage;
 
+  /* scaffold: fixed header + page area */
   out.innerHTML=
     welcomeHTML+
     sealHTML(isCancelled?'bad':'ok',isCancelled?L.cancelled:L.active)+
-    /* progress */
     '<div class="progress-section">'+
       '<div class="progress-header">'+
         '<span class="progress-label">'+L.progress+'</span>'+
         '<div class="progress-right">'+
           '<div>'+
             '<div class="progress-pct '+pctCls+'" id="progPct">0%</div>'+
-            '<div class="progress-step-label">'+esc(curPhaseName)+' — '+esc(curStepName)+'</div>'+
+            '<div class="progress-step-label">'+esc(curPhaseName)+' \u2014 '+esc(curStepName)+'</div>'+
           '</div>'+
         '</div>'+
       '</div>'+
       '<div class="progress-track-bg"><div class="progress-track-fill" id="progFill"></div></div>'+
     '</div>'+
-    /* phases & steps */
-    buildPhaseBlocks(rec,track,currentIdx)+
-    /* details */
-    infoGrid(pairs)+
-    (notes?'<div class="notes-box"><span class="nk">'+L.notes+'</span><div class="notes-body">'+esc(notes)+'</div></div>':'')+
-    (updated?'<div class="meta-row"><span>'+L.lastUpdated+'</span><span>'+esc(updated)+'</span></div>':'');
+    '<div id="pageNav"></div>'+
+    '<div id="pageContent"></div>';
 
-  /* animate progress bar */
+  renderPages(pages,startPage,out,extraHTML);
+
+  /* animate progress */
   setTimeout(function(){
     var fill=out.querySelector('#progFill');
     var pctEl=out.querySelector('#progPct');
@@ -681,6 +795,7 @@ function renderResult(rec){
   if(!isCancelled)setTimeout(function(){sfx.found();},300);
   else setTimeout(function(){sfx.notfound();},300);
 }
+
 
 /* ---- LOOKUP ---- */
 document.getElementById('btnLookup').addEventListener('click',async function(){
