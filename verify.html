@@ -379,17 +379,20 @@ function parseCSV(text) {
   if (cur.length || row.length) { row.push(cur); rows.push(row); }
   return rows.filter(function(r){ return r.length && r.some(function(v){ return v.trim() !== ''; }); });
 }
+var cachedRows = null;
 async function loadSheet() {
-  var res = await fetch(CSV_URL + '&t=' + Date.now());
+  if (cachedRows) return cachedRows;
+  var res = await fetch(CSV_URL);
   if (!res.ok) throw new Error('fetch_failed');
   var text = await res.text();
   var rows = parseCSV(text);
   var headers = rows[0].map(function(h){ return h.trim().toLowerCase(); });
-  return rows.slice(1).map(function(r) {
+  cachedRows = rows.slice(1).map(function(r) {
     var obj = {};
     headers.forEach(function(h, i){ obj[h] = (r[i] || '').trim(); });
     return obj;
   });
+  return cachedRows;
 }
 function findContract(rows, id) {
   var norm = (id || '').trim().toLowerCase();
