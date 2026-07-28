@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contract Verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a2138;
+    --ink-2:#232c47;
+    --paper:#f3f0e7;
+    --paper-line: rgba(26,33,56,0.08);
+    --seal:#9a3324;
+    --seal-dark:#7a2a1c;
+    --verified:#2f6f4e;
+    --alert:#b23a2a;
+    --muted:#6b7280;
+    --gold:#b08a4e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      repeating-linear-gradient(180deg, transparent, transparent 27px, var(--paper-line) 28px),
+      var(--ink);
+    background-color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    color:var(--ink);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:56px 20px;
+  }
+  .card{
+    width:100%;
+    max-width:560px;
+    background:var(--paper);
+    border-radius:6px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.35);
+    overflow:hidden;
+    position:relative;
+  }
+  .card:before{
+    content:"";
+    position:absolute;
+    top:0;left:0;right:0;
+    height:6px;
+    background:linear-gradient(90deg, var(--seal), var(--gold));
+  }
+  header{
+    padding:34px 34px 20px;
+    text-align:center;
+    border-bottom:1px solid var(--paper-line);
+  }
+  header .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  header h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:28px;
+    margin:8px 0 0;
+    color:var(--ink);
+  }
+  .tabs{
+    display:flex;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .tab{
+    flex:1;
+    padding:14px;
+    text-align:center;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.02em;
+    cursor:pointer;
+    color:var(--muted);
+    background:transparent;
+    border:none;
+    font-family:'IBM Plex Sans', sans-serif;
+    border-bottom:2px solid transparent;
+  }
+  .tab.active{ color:var(--ink); border-bottom-color:var(--seal); }
+  .panel{ padding:30px 34px 34px; display:none; }
+  .panel.active{ display:block; }
+  label{ display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px; letter-spacing:.02em; }
+  input[type=text], input[type=file]{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid rgba(26,33,56,0.2);
+    border-radius:4px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    background:#fff;
+    margin-bottom:16px;
+  }
+  button.action{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:4px;
+    background:var(--ink);
+    color:var(--paper);
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    letter-spacing:.02em;
+  }
+  button.action:hover{ background:var(--ink-2); }
+  button.action:disabled{ opacity:.5; cursor:progress; }
+
+  .result{ margin-top:24px; text-align:center; min-height:1px; }
+  .seal{
+    width:96px;height:96px;
+    margin:0 auto 14px;
+    border-radius:50%;
+    border:3px solid currentColor;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    text-align:center;
+    line-height:1.3;
+    transform:scale(.4) rotate(-18deg);
+    opacity:0;
+    animation: stamp .45s cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  @keyframes stamp{
+    0%{ transform:scale(.4) rotate(-18deg); opacity:0; }
+    60%{ transform:scale(1.08) rotate(-6deg); opacity:1; }
+    100%{ transform:scale(1) rotate(-4deg); opacity:1; }
+  }
+  .seal.ok{ color:var(--verified); }
+  .seal.bad{ color:var(--alert); }
+  .seal.neutral{ color:var(--muted); }
+
+  .details{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    text-align:left;
+    background:#fff;
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    padding:14px 16px;
+    margin-top:6px;
+  }
+  .details div{ display:flex; justify-content:space-between; padding:4px 0; }
+  .details div + div{ border-top:1px dashed var(--paper-line); }
+  .details span.k{ color:var(--muted); }
+  .msg{ font-size:13px; color:var(--muted); margin-top:10px; }
+  footer{ padding:14px 34px 26px; text-align:center; font-size:11px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <div class="eyebrow">Document Registry</div>
+    <h1>Contract Verification</h1>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="status">Check Status</button>
+    <button class="tab" data-tab="file">Verify Document</button>
+  </div>
+
+  <!-- TAB 1: STATUS LOOKUP -->
+  <div class="panel active" id="panel-status">
+    <label for="idInput1">Contract Number</label>
+    <input type="text" id="idInput1" placeholder="e.g. C-2026-0143">
+    <button class="action" id="btnLookup">Check Status</button>
+    <div class="result" id="resultStatus"></div>
+  </div>
+
+  <!-- TAB 2: FILE HASH VERIFY -->
+  <div class="panel" id="panel-file">
+    <label for="idInput2">Contract Number</label>
+    <input type="text" id="idInput2" placeholder="e.g. C-2026-0143">
+    <label for="fileInput">Upload your copy of the contract file</label>
+    <input type="file" id="fileInput">
+    <button class="action" id="btnVerifyFile">Verify Document</button>
+    <div class="result" id="resultFile"></div>
+    <div class="msg">This compares the file you upload against the fingerprint recorded when the contract was issued. Nothing is uploaded anywhere — the check runs in your browser.</div>
+  </div>
+
+  <footer>Contract number and issue date shown only. No personal or financial details are exposed here.</footer>
+</div>
+
+<script>
+/* ====================== CONFIG ====================== */
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSBnB6cx30Cere6cNPZ2__vWxp1eTktnZiMnAO9rJhJYLRvww--uaArx8N5-XJhx3-q9cUsjAECAjAW/pub?gid=0&single=true&output=csv";
+/* ====================================================== */
+
+// --- tiny CSV parser (handles quoted commas) ---
+function parseCSV(text){
+  const rows = [];
+  let row = [], cur = "", inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"' && text[i+1] === '"'){ cur += '"'; i++; }
+      else if(c === '"'){ inQuotes = false; }
+      else { cur += c; }
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ row.push(cur); cur=""; }
+      else if(c === '\n' || c === '\r'){
+        if(c === '\r' && text[i+1] === '\n') i++;
+        row.push(cur); rows.push(row); row=[]; cur="";
+      } else { cur += c; }
+    }
+  }
+  if(cur.length || row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r => r.length && r.some(v => v.trim() !== ""));
+}
+
+let cachedRows = null;
+async function loadSheet(){
+  if(cachedRows) return cachedRows;
+  const res = await fetch(CSV_URL);
+  if(!res.ok) throw new Error("sheet_fetch_failed");
+  const text = await res.text();
+  const rows = parseCSV(text);
+  const headers = rows[0].map(h => h.trim().toLowerCase());
+  cachedRows = rows.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = (r[i]||"").trim());
+    return obj;
+  });
+  return cachedRows;
+}
+
+function findContract(rows, id){
+  const norm = (id||"").trim().toLowerCase();
+  return rows.find(r => (r["contractid"]||"").trim().toLowerCase() === norm);
+}
+
+function sealHTML(cls, big, small){
+  return `<div class="seal ${cls}"><div>${big}<br><span style="font-weight:400;font-size:10px">${small||""}</span></div></div>`;
+}
+
+// ---- Tab switching ----
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("panel-"+btn.dataset.tab).classList.add("active");
+  });
+});
+
+// ---- Tab 1: status lookup ----
+document.getElementById("btnLookup").addEventListener("click", async ()=>{
+  const out = document.getElementById("resultStatus");
+  const id = document.getElementById("idInput1").value.trim();
+  if(!id){ out.innerHTML = `<div class="msg">Enter a contract number.</div>`; return; }
+  out.innerHTML = `<div class="msg">Checking…</div>`;
+  try{
+    const rows = await loadSheet();
+    const rec = findContract(rows, id);
+    if(!rec){
+      out.innerHTML = sealHTML("neutral","No Record","not found") +
+        `<div class="msg">No contract matches "${escapeHtml(id)}".</div>`;
+      return;
+    }
+    const status = (rec["status"]||"").toLowerCase();
+    const isActive = status.includes("active") || status.includes("ساري") || status === "valid";
+    out.innerHTML = sealHTML(isActive?"ok":"bad", isActive?"Active":"Cancelled") +
+      `<div class="details">
+         <div><span class="k">Contract No.</span><span>${escapeHtml(rec["contractid"]||"")}</span></div>
+         <div><span class="k">Issue Date</span><span>${escapeHtml(rec["issuedate"]||"")}</span></div>
+         <div><span class="k">Status</span><span>${escapeHtml(rec["status"]||"")}</span></div>
+       </div>`;
+  }catch(e){
+    out.innerHTML = `<div class="msg">Could not reach the registry. Please try again shortly.</div>`;
+  }
+});
+
+// ---- Tab 2: file hash verification ----
+async function sha256Hex(file){
+  const buf = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+document.getElementById("btnVerifyFile").addEventListener("click", async ()=>{
+  const out = document.getElementById("resultFile");
+  const id = document.getElementById("idInput2").value.trim();
+  const fileInput = document.getElementById("fileInput");
+  if(!id){ out.innerHTML = `<div class="msg">Enter the contract number.</div>`; return; }
+  if(!fileInput.files.length){ out.innerHTML = `<div class="msg">Choose the file to check.</div>`; return; }
+
+  out.innerHTML = `<div class="msg">Checking…</div>`;
+  try{
+    const rows = await loadSheet();
+    const rec = findContract(rows, id);
+    if(!rec){
+      out.innerHTML = sealHTML("neutral","No Record","not found");
+      return;
+    }
+    const storedHash = (rec["filehash"]||"").trim().toLowerCase();
+    if(!storedHash){
+      out.innerHTML = sealHTML("neutral","No Fingerprint","on file") +
+        `<div class="msg">This contract has no stored fingerprint to compare against.</div>`;
+      return;
+    }
+    const fileHash = await sha256Hex(fileInput.files[0]);
+    if(fileHash === storedHash){
+      out.innerHTML = sealHTML("ok","Original","unaltered");
+    } else {
+      out.innerHTML = sealHTML("bad","Modified","does not match");
+    }
+  }catch(e){
+    out.innerHTML = `<div class="msg">Could not complete the check. Please try again.</div>`;
+  }
+});
+
+// ---- auto-fill from ?id= in URL ----
+(function(){
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id");
+  if(id){
+    document.getElementById("idInput1").value = id;
+    document.getElementById("idInput2").value = id;
+    document.getElementById("btnLookup").click();
+  }
+})();
+
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+</script>
+</body>
+</html>
