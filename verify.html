@@ -406,6 +406,15 @@ function parseCsv(txt){
   return rows.filter(function(r){return r.some(function(v){return v.trim()!=='';});});
 }
 async function load(){
+  /* 1) Try admin tool localStorage first */
+  try{
+    var local=localStorage.getItem('ig_verify_data');
+    if(local){
+      var parsed=JSON.parse(local);
+      if(Array.isArray(parsed)&&parsed.length) return parsed;
+    }
+  }catch(e){}
+  /* 2) Fall back to Google Sheet */
   var r=await fetch(CSV+'&t='+Date.now());
   if(!r.ok)throw new Error('net');
   var txt=await r.text();
