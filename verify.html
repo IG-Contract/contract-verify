@@ -116,6 +116,10 @@ html[dir=rtl] .inp-wrap .clr-btn{right:auto;left:10px;}
 /* ── RESULT AREA ── */
 .res{padding:16px 14px 0;flex:1 0 auto;width:100%;}
 
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s cubic-bezier(.2,.7,.3,1),transform .6s cubic-bezier(.2,.7,.3,1);}
+.reveal.show{opacity:1;transform:translateY(0);}
+
 /* ── LOADING ── */
 .loading{text-align:center;padding:36px 0;}
 .dots{display:flex;justify-content:center;gap:7px;margin-bottom:10px;}
@@ -352,8 +356,14 @@ html[dir=ltr] .ns-card{border-right:1px solid var(--line);border-left:4px solid 
 <script>
 var CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vSBnB6cx30Cere6cNPZ2__vWxp1eTktnZiMnAO9rJhJYLRvww--uaArx8N5-XJhx3-q9cUsjAECAjAW/pub?gid=0&single=true&output=csv';
 var SCRIPT_URL='https://script.google.com/macros/s/AKfycbw0uVAYuh-cptcuA_f7F1v2uVDdv0n0eG4k-Xt292NaXHPDFC2NKKGBZh8f1slr42LwWg/exec';
+var AR_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+function arDateTime(){
+  var d=new Date(),h=d.getHours(),ap=h<12?'ص':'م',h12=h%12;if(h12===0)h12=12;
+  function p2(n){return n<10?'0'+n:n;}
+  return d.getDate()+' '+AR_MONTHS[d.getMonth()]+' '+d.getFullYear()+' - '+p2(h12)+':'+p2(d.getMinutes())+' '+ap;
+}
 function logVisit(contractId,clientName){
-  var ts=encodeURIComponent(new Date().toLocaleString('ar-SA'));
+  var ts=encodeURIComponent(arDateTime());
   var id=encodeURIComponent(contractId);
   var nm=encodeURIComponent(clientName||'');
   fetch(SCRIPT_URL+'?action=visit&id='+id+'&name='+nm+'&ts='+ts,{method:'GET',mode:'no-cors'}).catch(function(){});
@@ -521,7 +531,7 @@ function render(rec){
 
   /* welcome or complete */
   if(isDone&&cname){
-    html+='<div class="cc">'+
+    html+='<div class="cc reveal">'+
       '<span class="cc-ico">🏆</span>'+
       '<div class="cc-ttl">'+l.cbTitle+'</div>'+
       '<div class="cc-nm">'+esc(l.cbName(cname))+'</div>'+
@@ -529,7 +539,7 @@ function render(rec){
       '<div class="cc-stars">⭐⭐⭐⭐⭐</div>'+
     '</div>';
   }else if(cname){
-    html+='<div class="wc">'+
+    html+='<div class="wc reveal">'+
       '<div class="wc-eyebrow">'+esc(l.wEy(cid))+'</div>'+
       '<div class="wc-name">'+esc(l.wName(cname))+'</div>'+
       '<div class="wc-msg">'+esc(l.wMsg)+'</div>'+
@@ -538,14 +548,14 @@ function render(rec){
   }
 
   /* status row */
-  html+='<div class="status-row">'+
+  html+='<div class="status-row reveal">'+
     '<div class="stat-chip '+chipCls+'"><span class="cdot"></span>'+chipTxt+'</div>'+
     '<div class="stat-id">'+esc(cid)+'</div>'+
   '</div>';
 
   /* progress */
   if(!isDone){
-    html+='<div class="prog-card">'+
+    html+='<div class="prog-card reveal">'+
       '<div class="pc-top">'+
         '<div><div class="pc-label">'+l.prog+'</div><div class="pc-stage">'+esc(stageName)+'</div></div>'+
         '<div class="pc-pct '+pctCls+'" id="pPct">0%</div>'+
@@ -579,25 +589,35 @@ function render(rec){
     var rem=track.length-maxShow;
     stepsHtml+='<div style="text-align:center;padding:6px 0;font-size:11px;color:var(--tx3)">'+rem+' '+(lang==='ar'?'مراحل أخرى':'more stages')+'</div>';
   }
-  html+='<div class="steps-card">'+
+  html+='<div class="steps-card reveal">'+
     '<div class="steps-title">'+l.tlTitle+'</div>'+
     '<div class="steps">'+stepsHtml+'</div>'+
   '</div>';
 
   /* next step */
-  if(ns) html+='<div class="ns-card"><span class="ns-label">'+l.ns+'</span><div class="ns-text">'+esc(ns)+'</div></div>';
+  if(ns) html+='<div class="ns-card reveal"><span class="ns-label">'+l.ns+'</span><div class="ns-text">'+esc(ns)+'</div></div>';
 
   /* notes */
-  if(notes) html+='<div class="notes-card"><span class="nl">'+l.notes+'</span><div class="nb">'+esc(notes)+'</div></div>';
+  if(notes) html+='<div class="notes-card reveal"><span class="nl">'+l.notes+'</span><div class="nb">'+esc(notes)+'</div></div>';
 
   /* info */
   var iRows='<div class="ir"><span class="ik">'+l.cNo+'</span><span class="iv">'+esc(cid)+'</span></div>';
   if(iDate) iRows+='<div class="ir"><span class="ik">'+l.iDate+'</span><span class="iv">'+esc(iDate)+'</span></div>';
   iRows+='<div class="ir"><span class="ik">'+l.status+'</span><span class="iv">'+esc(raw)+'</span></div>';
   if(resp) iRows+='<div class="ir"><span class="ik">'+l.resp+'</span><span class="iv">'+esc(resp)+'</span></div>';
-  html+='<div class="info-card">'+iRows+'</div>';
+  html+='<div class="info-card reveal">'+iRows+'</div>';
 
   out.innerHTML=html;
+
+  var _rvObs=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){en.target.classList.add('show');_rvObs.unobserve(en.target);}
+    });
+  },{threshold:0.12});
+  out.querySelectorAll('.reveal').forEach(function(el,i){
+    el.style.transitionDelay=(i*70)+'ms';
+    _rvObs.observe(el);
+  });
 
   setTimeout(function(){
     var pf=document.getElementById('pFill'),pe=document.getElementById('pPct');
