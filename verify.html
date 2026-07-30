@@ -19,7 +19,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{-webkit-font-smoothing:antialiased;}
-body{font-family:'Tajawal','Inter',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+body{font-family:'Tajawal','Inter',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;flex-direction:column;}
 html[dir=ltr] body{font-family:'Inter','Tajawal',sans-serif;}
 
 /* ── NAVBAR (matches site) ── */
@@ -114,7 +114,7 @@ html[dir=rtl] .inp-wrap .clr-btn{right:auto;left:10px;}
 .inp-wrap .clr-btn.v{display:block;}
 
 /* ── RESULT AREA ── */
-.res{padding:16px 14px 0;}
+.res{padding:16px 14px 0;flex:1 0 auto;width:100%;}
 
 /* ── LOADING ── */
 .loading{text-align:center;padding:36px 0;}
@@ -351,6 +351,13 @@ html[dir=ltr] .ns-card{border-right:1px solid var(--line);border-left:4px solid 
 
 <script>
 var CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vSBnB6cx30Cere6cNPZ2__vWxp1eTktnZiMnAO9rJhJYLRvww--uaArx8N5-XJhx3-q9cUsjAECAjAW/pub?gid=0&single=true&output=csv';
+var SCRIPT_URL='https://script.google.com/macros/s/AKfycbw0uVAYuh-cptcuA_f7F1v2uVDdv0n0eG4k-Xt292NaXHPDFC2NKKGBZh8f1slr42LwWg/exec';
+function logVisit(contractId,clientName){
+  var ts=encodeURIComponent(new Date().toLocaleString('ar-SA'));
+  var id=encodeURIComponent(contractId);
+  var nm=encodeURIComponent(clientName||'');
+  fetch(SCRIPT_URL+'?action=visit&id='+id+'&name='+nm+'&ts='+ts,{method:'GET',mode:'no-cors'}).catch(function(){});
+}
 var TN=[["✍️","توقيع العقد","Contract Signing",0],["💰","تم الدفع","Payment Received",10],["🚀","بدء الإجراءات","Procedures Started",18],["📋","تقديم MISA","MISA Submitted",32],["✅","موافقة MISA","MISA Approved",50],["📄","عقد التأسيس","MOA Signed",62],["🏢","السجل التجاري","CR Issued",76],["🖥️","المنصات الحكومية","Gov Platforms",88],["🎉","اكتمل المشروع","Project Complete",100]];
 var TF=[["✍️","توقيع العقد","Contract Signing",0],["💰","تم الدفع","Payment Received",7],["🚀","بدء الإجراءات","Procedures Started",13],["📦","عملية الاستحواذ","Acquisition",20],["🔏","التصاديق","Attestations",27],["📝","الترجمة والتوثيق","Translation",34],["📋","تقديم MISA","MISA Submitted",47],["✅","موافقة MISA","MISA Approved",60],["📄","عقد التأسيس","MOA Signed",70],["🏢","السجل التجاري","CR Issued",80],["🖥️","المنصات الحكومية","Gov Platforms",91],["🎉","اكتمل المشروع","Project Complete",100]];
 var I={
@@ -613,7 +620,7 @@ async function go(){
     var rows=await loadData();
     var rec=findRec(rows,id);
     if(!rec){sfx.bad();out.innerHTML='<div class="nf"><div class="nf-ico">🔍</div><p class="nf-msg">'+esc(l.noMatch(id))+'</p></div>';}
-    else{render(rec);}
+    else{render(rec);logVisit((rec['contractid']||id),rec['clientname']);}
   }catch(e){out.innerHTML='<div class="nf"><div class="nf-ico">⚠️</div><p class="nf-msg">'+l.err+'</p></div>';}
   finally{document.getElementById('btnGo').disabled=false;}
 }
